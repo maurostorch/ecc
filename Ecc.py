@@ -12,34 +12,39 @@ def prime(size):
 		if p % 2 != 0 and pow(2, p - 1, p) == 1:
 			return p
 
-def PointGenerator(x,y,a,mod):
+def PointLists(x,y,a,mod):
 	pts = []
-	p=(x,y)
-	pts.append(p)
-	i = 2
-	while True :
-		print str(i)+"P\n"
-		p=(x,y)
+	pts.append((x,y))
+	i = 2 #starts from 2P until infinite point raised from PointGenerator
+	while True:
 		try:
-			for bpos in range(len(bin(i))-3):
-				print "-- bpos = " + str(bpos)
-				print "DOUBLING"
-				pnew = PointDoubling(p[0],p[1],a,mod)
-				print pnew
-				#pts.append(pnew)
-				print "-- bin(i) = " + bin(i) + " is " + str(bin(i)[bpos+3] == '1')
-				if bin(i)[bpos+3] == '1' :
-					print "ADD " + str(pnew) + " + " + str(p)
-					pnew = PointAddition(pnew[0],pnew[1],x,y,mod)
-					print pnew
-					#pts.append(pnew)
-				p = pnew
-				print pnew
-			pts.append(pnew)
+			pts.append(PointGenerator(x,y,a,mod,i))
+			i = i + 1
 		except:
 			break
-		i=i+1
-	return(pts)	
+	return pts
+
+def PointGenerator(x,y,a,mod,i):
+	#print str(i)+"P\n"
+	p=(x,y)
+	try:
+		for bpos in range(len(bin(i))-3):
+			#print "-- bpos = " + str(bpos)
+			#print "DOUBLING"
+			pnew = PointDoubling(p[0],p[1],a,mod)
+			#print pnew
+			#pts.append(pnew)
+			#print "-- bin(i) = " + bin(i) + " is " + str(bin(i)[bpos+3] == '1')
+			if bin(i)[bpos+3] == '1' :
+				#print "ADD " + str(pnew) + " + " + str(p)
+				pnew = PointAddition(pnew[0],pnew[1],x,y,mod)
+				#print pnew
+				#pts.append(pnew)
+			p = pnew
+			#print pnew
+	except:
+		raise
+	return pnew	
 
 
 def PointAddition(x1,y1,x2,y2,mod):
@@ -76,4 +81,4 @@ def isPointOnCurve(x,y,a,b,mod):
 if __name__ == "__main__":
 	print "Teste da Curva Eliptica"
 	#isPointOnCurve(5,1,2,2,17
-	print str(PointGenerator(5,1,2,prime(3)))
+	print str(PointLists(5,1,2,17))
