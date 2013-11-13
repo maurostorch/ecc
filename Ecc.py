@@ -36,30 +36,40 @@ The inverse of t
 '''
 
 def PointGenerator(x,y,a,b,mod):
-	pontos = []
+	pts = []
 	p=(x,y)
-	pontos.append(p)
+	pts.append(p)
 	i = 2
-	#while True :
-	for i in range(19):
-		for b in reversed(range(len(bin(i))-3)):
-			pnew = PointDoubling(p[0],p[1],a,mod)
-			pontos.append(pnew)
-			if i & (b+1):
-				pnew = PointAddition(p[0],p[1],pnew[0],pnew[1],mod)
-				pontos.append(pnew)
-			p = pnew
-			print pnew 	
+	while True :
+		print str(i)+"P\n"
+		p=(x,y)
+		try:
+			for b in range(len(bin(i))-3):
+				print "-- b = " + str(b)
+				print "DOUBLING"
+				pnew = PointDoubling(p[0],p[1],a,mod)
+				print pnew
+				#pts.append(pnew)
+				print "-- bin(i) = " + bin(i) + " is " + str(bin(i)[b+3] == '1')
+				if bin(i)[b+3] == '1' :
+					print "ADD " + str(pnew) + " + " + str(p)
+					pnew = PointAddition(pnew[0],pnew[1],x,y,mod)
+					print pnew
+					#pts.append(pnew)
+				p = pnew
+				print pnew
+			pts.append(pnew)
+		except:
+			break
 		i=i+1
-				
-
-		
-	return(pontos)	
+	return(pts)	
 
 
 def PointAddition(x1,y1,x2,y2,mod):
 	try:
-		s = ((y2-y1)/(x2-x1)) % mod
+		s1 = ((y2-y1)%mod)
+		s2 = int(invert(x2-x1,mod))
+		s = (s1 * s2) % mod
 		x3 = (pow(s,2) - x1 - x2) % mod
 		y3 = (s * (x1-x3) - y1) % mod
 		return (x3,y3,)
