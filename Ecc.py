@@ -4,38 +4,15 @@ from fractions import gcd
 from gmpy2 import invert
 import sys
 
-'''
-def PointGenerator(x,y,a,b,mod):
-	pontos = []
-	p=(x,y)
-	pontos.append(p)
-	i = 0
-	while True :
-		if p[i] == x and p[i+1] == y:
-			pnew = PointDoubling(p[0],p[1],a,mod)
-		else:
-			pnew  = PointAddition(p[0],p[1],x,y,mod)	
-		if not pnew:
-			break
-		print pnew	  
-		p = pnew	
-		pontos.append(p)
-		i = i + 2
-	return(pontos)	
-'''
-'''
-N = A
-R = O    // Point at infinity
-for (bit = 0; bit < bitlength; bit++) {
-    if (bitset(k, bit)) {
-        R = point_add(R, N)
-    }
-    N = point_double(N)
-}
-The inverse of t
-'''
+def prime(size):
+	r = random.Random()
+	while True:
+		r.seed(urandom(16))
+		p = r.randint(pow(2, size), pow(2, size + 1) - 1)
+		if p % 2 != 0 and pow(2, p - 1, p) == 1:
+			return p
 
-def PointGenerator(x,y,a,b,mod):
+def PointGenerator(x,y,a,mod):
 	pts = []
 	p=(x,y)
 	pts.append(p)
@@ -44,14 +21,14 @@ def PointGenerator(x,y,a,b,mod):
 		print str(i)+"P\n"
 		p=(x,y)
 		try:
-			for b in range(len(bin(i))-3):
-				print "-- b = " + str(b)
+			for bpos in range(len(bin(i))-3):
+				print "-- bpos = " + str(bpos)
 				print "DOUBLING"
 				pnew = PointDoubling(p[0],p[1],a,mod)
 				print pnew
 				#pts.append(pnew)
-				print "-- bin(i) = " + bin(i) + " is " + str(bin(i)[b+3] == '1')
-				if bin(i)[b+3] == '1' :
+				print "-- bin(i) = " + bin(i) + " is " + str(bin(i)[bpos+3] == '1')
+				if bin(i)[bpos+3] == '1' :
 					print "ADD " + str(pnew) + " + " + str(p)
 					pnew = PointAddition(pnew[0],pnew[1],x,y,mod)
 					print pnew
@@ -98,5 +75,5 @@ def isPointOnCurve(x,y,a,b,mod):
 
 if __name__ == "__main__":
 	print "Teste da Curva Eliptica"
-	#isPointOnCurve(5,1,2,2,17)
-	print str(PointGenerator(5,1,2,2,17))
+	#isPointOnCurve(5,1,2,2,17
+	print str(PointGenerator(5,1,2,prime(3)))
