@@ -90,10 +90,9 @@ def CurveGenerate(bitsize):
 	return p,a,b,pts
 
 def KeyPairGen(x,y,a,p):
-	pl = PointList(x,y,a,p)
-	r = random.randint(1,pl.__len__()) + 1
-	R = PointGenerator(x,y,a,p,r)
-	return r,R
+	d = random.randint(1,p)
+	P = PointMultiplication(x,y,a,p,d)
+	return d,P
 
 if __name__ == "__main__":
 	print "Teste da Curva Eliptica"
