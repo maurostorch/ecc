@@ -78,8 +78,8 @@ def isPointOnCurve(x,y,a,b,mod):
 def CurveGenerate(bitsize):
 	while True:
 		p=prime(bitsize)
-		a=random.randint(1,100)
-		b=random.randint(1,100)
+		a=random.randint(100,1000)
+		b=random.randint(100,1000)
 		pts=[]
 		for x in range(100):
 			for y in range(100):
@@ -89,11 +89,18 @@ def CurveGenerate(bitsize):
 			break
 	return p,a,b,pts
 
+def KeyPairGen(x,y,a,p):
+	pl = PointList(x,y,a,p)
+	r = random.randint(1,pl.__len__()) + 1
+	R = PointGenerator(x,y,a,p,r)
+	return r,R
+
 if __name__ == "__main__":
 	print "Teste da Curva Eliptica"
 	#isPointOnCurve(5,1,2,2,17)
 	p,a,b,pts = CurveGenerate(14)
-	print p,a,b,pts
-	pl = PointList(pts[0][0],pts[0][1],a,p)
-	print str(pl)
-	print len(pl)
+	print str(KeyPairGen(pts[0][0],pts[0][1],a,p))
+	#print p,a,b,pts
+	#pl = PointList(pts[0][0],pts[0][1],a,p)
+	#print str(pl)
+	#print len(pl)
