@@ -90,18 +90,23 @@ def CurveGenerate(bitsize):
 	return p,a,b,pts
 
 def KeyPairGen(x,y,a,p):
-	d = random.randint(1,p)
-	P = PointMultiplication(x,y,a,p,d)
-	return d,P
+	while True:
+		try:
+			d = random.randint(1,p)
+			P = PointMultiplication(x,y,a,p,d)
+			return d,P
+		except:
+			pass
 
 if __name__ == "__main__":
 	print "Teste da Curva Eliptica"
 	#isPointOnCurve(5,1,2,2,17)
-	p,a,b,pts = CurveGenerate(160)
-	print p,a,b,pts
-	#print str(KeyPairGen(pts[0][0],pts[0][1],a,p))
+	#p,a,b,pts = CurveGenerate(160)
+	#print p,a,b,pts
+	#print str(KeyPairGen(5,1,2,17))
 	#print p,a,b,pts
 	#1291 978 178 [(51, 26), (53, 28)]
 	#pl = PointList(51,26,978,1291)
 	#print str(pl)
 	#print len(pl)
+	R = PointMultiplication(5,1,2,17,8)
