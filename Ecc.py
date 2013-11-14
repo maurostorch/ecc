@@ -3,6 +3,7 @@ from os import urandom
 from fractions import gcd
 from gmpy2 import invert
 import sys
+from multiprocessing import Pool
 
 def prime(size):
 	r = random.Random()
@@ -12,7 +13,7 @@ def prime(size):
 		if p % 2 != 0 and pow(2, p - 1, p) == 1:
 			return p
 
-def PointLists(x,y,a,mod):
+def PointList(x,y,a,mod):
 	pts = []
 	pts.append((x,y))
 	i = 2 #starts from 2P until infinite point raised from PointGenerator
@@ -72,13 +73,27 @@ def PointDoubling(x1,y1,a,mod):
 def isPointOnCurve(x,y,a,b,mod):
 	pc = ((pow(x,3) + (a * x) + b)) % mod
 	p  = pow(y,2) 
-	if  p == pc:
-		print "true" 
-	else:
-		print "false"	
+	return p == pc
 
+def CurveGenerate(bitsize):
+	while True:
+		p=prime(bitsize)
+		a=random.randint(1,100)
+		b=random.randint(1,100)
+		pts=[]
+		for x in range(100):
+			for y in range(100):
+				if isPointOnCurve(x,y,a,b,p):
+					pts.append((x,y))
+		if pts.__len__() > 0:
+			break
+	return p,a,b,pts
 
 if __name__ == "__main__":
 	print "Teste da Curva Eliptica"
-	#isPointOnCurve(5,1,2,2,17
-	print str(PointLists(5,1,2,17))
+	#isPointOnCurve(5,1,2,2,17)
+	p,a,b,pts = CurveGenerate(14)
+	print p,a,b,pts
+	pl = PointList(pts[0][0],pts[0][1],a,p)
+	print str(pl)
+	print len(pl)
