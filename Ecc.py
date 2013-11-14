@@ -19,13 +19,13 @@ def PointList(x,y,a,mod):
 	i = 2 #starts from 2P until infinite point raised from PointGenerator
 	while True:
 		try:
-			pts.append(PointGenerator(x,y,a,mod,i))
+			pts.append(PointMultiplication(x,y,a,mod,i))
 			i = i + 1
 		except:
 			break
 	return pts
 
-def PointGenerator(x,y,a,mod,i):
+def PointMultiplication(x,y,a,mod,i):
 	#print str(i)+"P\n"
 	p=(x,y)
 	try:
@@ -81,8 +81,8 @@ def CurveGenerate(bitsize):
 		a=random.randint(100,1000)
 		b=random.randint(100,1000)
 		pts=[]
-		for x in range(100):
-			for y in range(100):
+		for x in range(1000):
+			for y in range(1000):
 				if isPointOnCurve(x,y,a,b,p):
 					pts.append((x,y))
 		if pts.__len__() > 0:
@@ -98,9 +98,11 @@ def KeyPairGen(x,y,a,p):
 if __name__ == "__main__":
 	print "Teste da Curva Eliptica"
 	#isPointOnCurve(5,1,2,2,17)
-	p,a,b,pts = CurveGenerate(14)
-	print str(KeyPairGen(pts[0][0],pts[0][1],a,p))
+	p,a,b,pts = CurveGenerate(160)
+	print p,a,b,pts
+	#print str(KeyPairGen(pts[0][0],pts[0][1],a,p))
 	#print p,a,b,pts
-	#pl = PointList(pts[0][0],pts[0][1],a,p)
+	#1291 978 178 [(51, 26), (53, 28)]
+	#pl = PointList(51,26,978,1291)
 	#print str(pl)
 	#print len(pl)
