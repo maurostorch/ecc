@@ -143,13 +143,13 @@ class ECC(object):
 		return engine.decrypt(ciphertext + fill)[:ciphertext.__len__()-2]
 
 if __name__ == "__main__":
-	print "Teste da Curva Eliptica"
+	print "Elliptical Curve Cryptography Diffie-Hellmann"
 	ecc = ECC(2,2,17,(5,1),pk=(10,11)) #setting just the public key for encrypting process
-	print "Envia PK"
-	print ecc.pk
+	print "PK = " + str(ecc.pk)
 	print " ------- ENCRYPT -------"
-	R,C = ecc.encrypt("TESTE DE CRIPROGRADIA UTILIZANDO CURVAS EPLIPTICAS")
+	R,C = ecc.encrypt("Cryptography test!")
+	print "done."
 	print " ------- DECRYPT -------"	
-	print R
+	print "R = " + str(R)
 	ecc2 = ECC(2,2,17,(5,1),16) # setting just the private key for decryption process
 	print ecc2.decrypt(R,C)
