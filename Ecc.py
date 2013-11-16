@@ -8,6 +8,8 @@ from multiprocessing import Pool
 from Crypto.Cipher import AES
 from Crypto import Random
 
+BLOCK_SIZE = 16
+
 #Generate a radom prime number 
 def prime(size):
 	r = random.Random()
@@ -17,139 +19,137 @@ def prime(size):
 		if p % 2 != 0 and pow(2, p - 1, p) == 1:
 			return p
 
-def PointList(x,y,a,mod):
-	pts = []
-	pts.append((x,y))
-	i = 2 #starts from 2P until infinite point raised from PointGenerator
-	while True:
+class ECC(object):
+
+	def __init__(self,a=-1,b=-1,mod=-1,basepoint=(-1,-1),private=-1,pk=(-1,-1)):
+		if a == -1 and b == -1 and mod == -1:
+			self.curvegeneration()
+		else:
+			self.a = a
+			self.b = b
+			self.mod = mod
+			self.basepoint = basepoint
+			self.private = private
+		if private == -1 or pk == (-1,-1):
+			self.keypair()
+		else:
+			self.pk = pk
+	
+	def pointlist(self):
+		pts = []
+		pts.append((self.basepoint[0],self.basepoint[1]))
+		i = 2 #starts from 2P until infinite point raised from PointGenerator
+		while True:
+			try:
+				pts.append(self.PointMultiplication(x,y,i))
+				i = i + 1
+			except:
+				break
+		return pts
+
+	def pointmultiplication(self,x,y,i):
+		p=(x,y)
+		pnew = None
 		try:
-			pts.append(PointMultiplication(x,y,a,mod,i))
-			i = i + 1
+			for bpos in range(len(bin(i))-3):
+				pnew = self.pointdoubling(p[0],p[1])
+				if bin(i)[bpos+3] == '1' :
+					pnew = self.pointaddition(pnew[0],pnew[1],x,y)
+				p = pnew
 		except:
-			break
-	return pts
+			raise
+		return pnew	
 
-def PointMultiplication(x,y,a,mod,i):
-	#print str(i)+"P\n"
-	p=(x,y)
-	pnew = None
-	try:
-		for bpos in range(len(bin(i))-3):
-			#print "-- bpos = " + str(bpos)
-			#print "DOUBLING"
-			pnew = PointDoubling(p[0],p[1],a,mod)
-			#print pnew
-			#pts.append(pnew)
-			#print "-- bin(i) = " + bin(i) + " is " + str(bin(i)[bpos+3] == '1')
-			if bin(i)[bpos+3] == '1' :
-				#print "ADD " + str(pnew) + " + " + str(p)
-				pnew = PointAddition(pnew[0],pnew[1],x,y,mod)
-				#print pnew
-				#pts.append(pnew)
-			p = pnew
-			#print pnew
-	except:
-		raise
-	return pnew	
-
-
-def PointAddition(x1,y1,x2,y2,mod):
-	try:
-		s1 = ((y2-y1)%mod)
-		s2 = int(invert(x2-x1,mod))
-		s = (s1 * s2) % mod
-		x3 = (pow(s,2) - x1 - x2) % mod
-		y3 = (s * (x1-x3) - y1) % mod
-		return (x3,y3,)
-	except:
-		raise
-
-def PointDoubling(x1,y1,a,mod):
-	try:
-		s1 = (3 * pow(x1,2) + a) % mod
-		s2 = int(invert(2*y1,mod))
-		s = (s1 * s2) % mod
-		x3 = (pow(s,2) - x1 - x1) % mod
-		y3 = (s * (x1-x3) - y1) % mod
-		return (x3,y3,)
-	except:
-		raise	
-
-
-#Verify if a point is on curve
-def isPointOnCurve(x,y,a,b,mod):
-	pc = ((pow(x,3) + (a * x) + b)) % mod
-	p  = pow(y,2) 
-	return p == pc
-
-#Generate a Eliptic Curve
-def CurveGenerate(bitsize):
-	while True:
-		p=prime(bitsize)
-		a=random.randint(100,1000)
-		b=random.randint(100,1000)
-		pts=[]
-		for x in range(1000):
-			for y in range(1000):
-				if isPointOnCurve(x,y,a,b,p):
-					pts.append((x,y))
-		if pts.__len__() > 0:
-			break
-	return p,a,b,pts
-
-
-#Generate a KeyPair
-def KeyPairGen(x,y,a,p):
-	while True:
+	def pointaddition(self,x1,y1,x2,y2):
 		try:
-			d = random.randint(1,p)
-			P = PointMultiplication(x,y,a,p,d)
-			return d,P
+			s1 = ((y2-y1)%self.mod)
+			s2 = int(invert(x2-x1,self.mod))
+			s = (s1 * s2) % self.mod
+			x3 = (pow(s,2) - x1 - x2) % self.mod
+			y3 = (s * (x1-x3) - y1) % self.mod
+			return (x3,y3)
 		except:
-			pass
+			raise
 
+	def pointdoubling(self,x1,y1):
+		try:
+			s1 = (3 * pow(x1,2) + self.a) % self.mod
+			s2 = int(invert(2*y1,self.mod))
+			s = (s1 * s2) % self.mod
+			x3 = (pow(s,2) - x1 - x1) % self.mod
+			y3 = (s * (x1-x3) - y1) % self.mod
+			return (x3,y3)
+		except:
+			raise	
 
-#Encrypt using AES
-def Encrypt(pk,mod,plaintext):
-	#generate a radom integer number
-	r = random.randint(1,mod)
-	#generate R returns aside the ciphertext
-	R = PointMultiplication(5,1,2,mod,r)
-	#generate S - Point which x is the syncronous key for AES
-	S = PointMultiplication(pk[0],pk[1],2,mod,r)
-	#generate K - K is a hash SHA256 of S.x
-	K = hashlib.sha256(str(S[0])).digest()
-	BLOCK_SIZE = 16
-	iv = Random.get_random_bytes(BLOCK_SIZE)
-	Obj = AES.new(K, AES.MODE_CBC,iv)
-	#MODE_C = obs.Encrypt(plaintext)
-	fill =  (BLOCK_SIZE - (len(plaintext) % BLOCK_SIZE)) * chr(BLOCK_SIZE - (len(plaintext) % BLOCK_SIZE))
-	C = iv + Obj.encrypt(plaintext + fill) 
-	return(R,C)
+	#Verify if a point is on curve
+	def ispointoncurve(self,x,y):
+		pc = ((pow(x,3) + (self.a * x) + self.b)) % self.mod
+		p  = pow(y,2) 
+		return p == pc
 
+	#Generate a Eliptic Curve
+	def curvegenerate(self,bitsize):
+		while True:
+			self.mod=prime(bitsize)
+			self.a=random.randint(100,1000)
+			self.b=random.randint(100,1000)
+			pts=[]
+			for x in range(1000):
+				for y in range(1000):
+					if ispointoncurve(x,y,self.a,self.b,self.mod):
+						pts.append((x,y))
+			if pts.__len__() > 0:
+				break
+		self.basepoint = pts[0]
+		return pts
 
-#Decrypt Using AES
-def Decrypt(R,ciphertext,d,mod):
-	#generate a S
-	S = PointMultiplication(R[0],R[1],2,mod,d)
-	K = hashlib.sha256(str(S[0])).digest()
-	BLOCK_SIZE = 16
-	iv = ciphertext[:16]
-	ciphertext = ciphertext[16:]
-	fill = (BLOCK_SIZE - len(ciphertext) % BLOCK_SIZE) * chr(BLOCK_SIZE - len(ciphertext) % BLOCK_SIZE)
-	Obj = AES.new(K, AES.MODE_CBC,iv)
-	return Obj.decrypt(ciphertext + fill)[:ciphertext.__len__()-2]
+	#Generate a KeyPair
+	def keypair(self):
+		while True:
+			try:
+				self.private = self.private == None and random.randint(1,self.mod) or self.private
+				self.pk = self.pointmultiplication(self.basepoint[0],self.basepoint[1],self.private)
+				break
+			except:
+				pass
+	
+	#Encrypt using AES
+	def encrypt(self,plaintext):
+		#generate a radom integer number
+		r = random.randint(1,self.mod)
+		#generate R returns aside the ciphertext
+		R = self.pointmultiplication(self.basepoint[0],self.basepoint[1],r)
+		#generate S - Point which x is the syncronous key for AES
+		S = self.pointmultiplication(self.pk[0],self.pk[1],r)
+		#generate K - K is a hash SHA256 of S.x
+		K = hashlib.sha256(str(S[0])).digest()
+		iv = Random.get_random_bytes(BLOCK_SIZE)
+		engine = AES.new(K, AES.MODE_CBC,iv)
+		#MODE_C = obs.Encrypt(plaintext)
+		fill =  (BLOCK_SIZE - (len(plaintext) % BLOCK_SIZE)) * chr(BLOCK_SIZE - (len(plaintext) % BLOCK_SIZE))
+		C = iv + engine.encrypt(plaintext + fill) 
+		return(R,C)
 
-
+	#Decrypt Using AES
+	def decrypt(self,R,ciphertext):
+		#generate a S
+		S = self.pointmultiplication(R[0],R[1],self.private)
+		K = hashlib.sha256(str(S[0])).digest()
+		iv = ciphertext[:BLOCK_SIZE]
+		ciphertext = ciphertext[BLOCK_SIZE:]
+		fill = (BLOCK_SIZE - len(ciphertext) % BLOCK_SIZE) * chr(BLOCK_SIZE - len(ciphertext) % BLOCK_SIZE)
+		engine = AES.new(K, AES.MODE_CBC,iv)
+		return engine.decrypt(ciphertext + fill)[:ciphertext.__len__()-2]
 
 if __name__ == "__main__":
 	print "Teste da Curva Eliptica"
-	p = prime(160)
-	keypair = KeyPairGen(5,1,2,p)
+	ecc = ECC(2,2,17,(5,1),pk=(10,11)) #setting just the public key for encrypting process
 	print "Envia PK"
-	print keypair[1]
+	print ecc.pk
 	print " ------- ENCRYPT -------"
-	R,C = Encrypt(keypair[1],p,"TESTE DE CRIPROGRADIA UTILIZANDO CURVAS EPLIPTICAS")
+	R,C = ecc.encrypt("TESTE DE CRIPROGRADIA UTILIZANDO CURVAS EPLIPTICAS")
+	print " ------- DECRYPT -------"	
 	print R
-	print Decrypt(R,C,keypair[0],p)
-	
+	ecc2 = ECC(2,2,17,(5,1),16) # setting just the private key for decryption process
+	print ecc2.decrypt(R,C)
