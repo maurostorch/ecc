@@ -4,11 +4,10 @@ from fractions import gcd
 from gmpy2 import invert
 import sys
 import hashlib 
-from multiprocessing import Pool
 from Crypto.Cipher import AES
 from Crypto import Random
 
-BLOCK_SIZE = 16
+BLOCK_SIZE = 8
 
 #Generate a radom prime number 
 def prime(size):
@@ -124,7 +123,7 @@ class ECC(object):
 		S = self.pointmultiplication(self.pk[0],self.pk[1],r)
 		#generate K - K is a hash SHA256 of S.x
 		K = hashlib.sha256(str(S[0])).digest()
-		iv = Random.get_random_bytes(BLOCK_SIZE)
+		iv = Random.get_random_bytes(16)
 		engine = AES.new(K, AES.MODE_CBC,iv)
 		#MODE_C = obs.Encrypt(plaintext)
 		fill =  (BLOCK_SIZE - (len(plaintext) % BLOCK_SIZE)) * chr(BLOCK_SIZE - (len(plaintext) % BLOCK_SIZE))
@@ -136,11 +135,11 @@ class ECC(object):
 		#generate a S
 		S = self.pointmultiplication(R[0],R[1],self.private)
 		K = hashlib.sha256(str(S[0])).digest()
-		iv = ciphertext[:BLOCK_SIZE]
-		ciphertext = ciphertext[BLOCK_SIZE:]
-		fill = (BLOCK_SIZE - len(ciphertext) % BLOCK_SIZE) * chr(BLOCK_SIZE - len(ciphertext) % BLOCK_SIZE)
+		iv = ciphertext[:16]
+		ciphertext = ciphertext[16:]
 		engine = AES.new(K, AES.MODE_CBC,iv)
-		return engine.decrypt(ciphertext + fill)[:ciphertext.__len__()-2]
+		pt = engine.decrypt(ciphertext)
+		return pt[0:-ord(pt[-1])]
 
 if __name__ == "__main__":
 	print "Elliptical Curve Cryptography Diffie-Hellmann"
