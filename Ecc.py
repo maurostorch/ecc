@@ -144,12 +144,13 @@ class ECC(object):
 
 if __name__ == "__main__":
 	print "Elliptical Curve Cryptography Diffie-Hellmann"
-	ecc = ECC(2,2,17,(5,1),pk=(10,11)) #setting just the public key for encrypting process
+	p = prime(160) #for now, 160 bit long modulus still secure
+	ecc = ECC(2,2,p,(5,1)) #setting just the public key for encrypting process
 	print "PK = " + str(ecc.pk)
 	print " ------- ENCRYPT -------"
 	R,C = ecc.encrypt("Cryptography test!")
 	print "done."
 	print " ------- DECRYPT -------"	
 	print "R = " + str(R)
-	ecc2 = ECC(2,2,17,(5,1),16) # setting just the private key for decryption process
+	ecc2 = ECC(2,2,p,(5,1),ecc.private) # setting just the private key for decryption process
 	print ecc2.decrypt(R,C)
