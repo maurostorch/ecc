@@ -7,7 +7,7 @@ import hashlib
 from Crypto.Cipher import AES
 from Crypto import Random
 
-BLOCK_SIZE = 8
+BLOCK_SIZE = 16
 
 #Generate a radom prime number 
 def prime(size):
