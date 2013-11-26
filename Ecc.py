@@ -18,7 +18,7 @@ def prime(size):
 		if p % 2 != 0 and pow(2, p - 1, p) == 1:
 			return p
 
-class ECC(object):
+class ECC:
 
 	def __init__(self,a=-1,b=-1,mod=-1,basepoint=(-1,-1),private=-1,pk=(-1,-1)):
 		if a == -1 and b == -1 and mod == -1:
@@ -114,13 +114,9 @@ class ECC(object):
 				pass
 	
 	#Encrypt using AES
-	def encrypt(self,plaintext):
-		#generate a radom integer number
-		r = random.randint(1,self.mod)
-		#generate R returns aside the ciphertext
-		R = self.pointmultiplication(self.basepoint[0],self.basepoint[1],r)
+	def encrypt(self,plaintext,pk):
 		#generate S - Point which x is the syncronous key for AES
-		S = self.pointmultiplication(self.pk[0],self.pk[1],r)
+		S = self.pointmultiplication(pk[0],pk[1],self.private)
 		#generate K - K is a hash SHA256 of S.x
 		K = hashlib.sha256(str(S[0])).digest()
 		iv = Random.get_random_bytes(16)
@@ -128,12 +124,12 @@ class ECC(object):
 		#MODE_C = obs.Encrypt(plaintext)
 		fill =  (BLOCK_SIZE - (len(plaintext) % BLOCK_SIZE)) * chr(BLOCK_SIZE - (len(plaintext) % BLOCK_SIZE))
 		C = iv + engine.encrypt(plaintext + fill) 
-		return(R,C)
+		return(C)
 
 	#Decrypt Using AES
-	def decrypt(self,R,ciphertext):
+	def decrypt(self,ciphertext):
 		#generate a S
-		S = self.pointmultiplication(R[0],R[1],self.private)
+		S = self.pointmultiplication(self.pk[0],self.pk[1],self.private)
 		K = hashlib.sha256(str(S[0])).digest()
 		iv = ciphertext[:16]
 		ciphertext = ciphertext[16:]
@@ -144,12 +140,12 @@ class ECC(object):
 if __name__ == "__main__":
 	print "Elliptical Curve Cryptography Diffie-Hellmann"
 	p = prime(160) #for now, 160 bit long modulus still secure
-	ecc = ECC(2,2,p,(5,1)) #setting just the public key for encrypting process
-	print "PK = " + str(ecc.pk)
+	alice = ECC(2,2,p,(5,1)) #setting just the public key for encrypting process
+	bob = ECC(2,2,p,(5,1))
+	print "Alice's PK = " + str(alice.pk)
+	print "Bob's PK = " + str(bob.pk)
 	print " ------- ENCRYPT -------"
-	R,C = ecc.encrypt("Cryptography test!")
+	C = alice.encrypt("Message to Bob!",bob.pk)
 	print "done."
 	print " ------- DECRYPT -------"	
-	print "R = " + str(R)
-	ecc2 = ECC(2,2,p,(5,1),ecc.private) # setting just the private key for decryption process
-	print ecc2.decrypt(R,C)
+	print bob.decrypt(C)
