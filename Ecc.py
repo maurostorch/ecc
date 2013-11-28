@@ -20,8 +20,8 @@ def prime(size):
 
 class ECC:
 
-	def __init__(self,a=-1,b=-1,mod=-1,basepoint=(-1,-1),private=-1,pk=(-1,-1)):
-		if a == -1 and b == -1 and mod == -1:
+	def __init__(self,a=None,b=None,mod=None,basepoint=None,private=None,pk=None):
+		if a == None and b == None and mod == None:
 			self.curvegeneration()
 		else:
 			self.a = a
@@ -29,7 +29,7 @@ class ECC:
 			self.mod = mod
 			self.basepoint = basepoint
 			self.private = private
-		if private == -1 or pk == (-1,-1):
+		if private == None or pk == None:
 			self.keypair()
 		else:
 			self.pk = pk
@@ -127,9 +127,9 @@ class ECC:
 		return(C)
 
 	#Decrypt Using AES
-	def decrypt(self,ciphertext):
+	def decrypt(self,ciphertext,pk):
 		#generate a S
-		S = self.pointmultiplication(self.pk[0],self.pk[1],self.private)
+		S = self.pointmultiplication(pk[0],pk[1],self.private)
 		K = hashlib.sha256(str(S[0])).digest()
 		iv = ciphertext[:16]
 		ciphertext = ciphertext[16:]
@@ -148,4 +148,4 @@ if __name__ == "__main__":
 	C = alice.encrypt("Message to Bob!",bob.pk)
 	print "done."
 	print " ------- DECRYPT -------"	
-	print bob.decrypt(C)
+	print bob.decrypt(C,alice.pk)
