@@ -31,6 +31,7 @@ class tls:
 			pk=msg.split("__")[1]
 			self.pk = (long(pk[1:pk.index(",")]),long(pk[pk.index(",")+1:pk.index(")")]))
 			self.socket.send(str(self.ecc.pk))
+
 	def send_data(self, plaintext):
 		C = self.ecc.encrypt(plaintext,self.pk)
 		self.socket.send(str(C))
@@ -38,5 +39,5 @@ class tls:
 	def receive_data(self):
 		C = self.socket.recv(4096)
 		C = bytes(C)
-		plaintext = self.ecc.decrypt(C)
+		plaintext = self.ecc.decrypt(C,self.pk)
 		return plaintext
